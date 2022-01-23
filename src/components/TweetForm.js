@@ -18,7 +18,6 @@ const TweetForm = (props) => {
     };
     const connection = new Connection(network, opts.preflightCommitment);
     const provider = new Provider(connection, wallet, opts.preflightCommitment);
-
     const programID = new PublicKey(idl.metadata.address);
     const program = new Program(idl, programID, provider);
     return program;
@@ -27,11 +26,8 @@ const TweetForm = (props) => {
   const [forcedTopic, setforcedTopic] = useState('');
   // Permissions.
   const { connected } = useWallet();
-  //const [content, setContent] = useState('');
   const [content, setContent] = useState();
   const [contentLength, setContentLength] = useState(0);
-
-  // const canTweet = ()=> content.value && characterLimit.value > 0);
   const canTweet = () => content && characterLimit > 0;
   const textareaRef = useRef(null);
 
@@ -41,21 +37,10 @@ const TweetForm = (props) => {
   };
 
   const useCountCharacterLimit = (contentLength, limit) => {
-    //const characterLimit = ref(0)
-    //watchEffect(() => characterLimit.value = limit - text.value?.length)
-
     return limit - contentLength;
   };
 
   const characterLimit = useCountCharacterLimit(contentLength, 280);
-
-  /*
-  const characterLimitColour = () => {
-    if (280 - contentLength < 0) return 'text-red-500';
-    if (280 - contentLength <= 10) return 'text-yellow-500';
-    return 'text-gray-400';
-  };
-  */
 
   const send = async () => {
     if (!canTweet) return;
@@ -64,9 +49,9 @@ const TweetForm = (props) => {
 
     setContent('');
     setforcedTopic('');
+    props.initialize();
   };
 
-  /*
   useEffect(() => {
     if (textareaRef && textareaRef.current) {
       textareaRef.current.style.height = '0px';
@@ -74,7 +59,7 @@ const TweetForm = (props) => {
       textareaRef.current.style.height = scrollHeight + 'px';
     }
   }, [content]);
-*/
+
   const characterLimitColour =
     280 - contentLength < 0
       ? 'text-red-500'
@@ -123,7 +108,6 @@ const TweetForm = (props) => {
 
             <div className="flex items-center space-x-6 m-2 ml-auto">
               <div className={`${characterLimitColour}`}>
-                {' '}
                 {characterLimit} left
               </div>
 

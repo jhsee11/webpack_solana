@@ -86,8 +86,8 @@ const Home = () => {
 
   return (
     <div>
-      <TweetForm />
-      <TweetList tweets={tweets} loading={loading} />
+      <TweetForm initialize={initialize} />
+      <TweetList tweets={tweets} loading={loading} initialize={initialize} />
     </div>
   );
 };

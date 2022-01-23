@@ -2,27 +2,56 @@ import React, { useState } from 'react';
 import TweetFormUpdate from './TweetFormUpdate';
 import { Link } from 'react-router-dom';
 import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { Program, Provider } from '@project-serum/anchor';
+import { Connection, PublicKey } from '@solana/web3.js';
+import idl from '..//solana_twitter.json';
+import { deleteTweet } from '../api';
 
 const TweetCard = (props) => {
   const wallet = useAnchorWallet();
+  const [showFormUpdate, setShowFormUpdate] = useState(true);
 
-  const [isMyTweet, setIsMyTweet] = useState();
-  // wallet.value &&
-  //wallet.publicKey.toBase58() === props.tweet.author.toBase58()
+  const hideComponent = () => {
+    setShowFormUpdate(false);
+  };
 
+  const [isMyTweet, setIsMyTweet] = useState(
+    wallet && wallet.publicKey.toBase58() === props.tweet.author.toBase58()
+  );
   const [editing, setEditing] = useState(false);
-
   const gotTopic = props.tweet.topic;
 
+  const handleEdit = () => {
+    setEditing(true);
+    setShowFormUpdate(true);
+  };
+
+  const onDelete = async () => {
+    await deleteTweet(getProgram(), wallet, props.tweet);
+    props.initialize();
+  };
+
+  function getProgram() {
+    const network = 'http://127.0.0.1:8899';
+    const opts = {
+      preflightCommitment: 'processed',
+    };
+    const connection = new Connection(network, opts.preflightCommitment);
+    const provider = new Provider(connection, wallet, opts.preflightCommitment);
+    const programID = new PublicKey(idl.metadata.address);
+    const program = new Program(idl, programID, provider);
+    return program;
+  }
+
   const EditButton = (props) => {
-    //console.log(wallet.value);
-    //console.log(wallet.publicKey);
+    console.log(`wallet value is ${wallet.value}`);
+    console.log(`wallet public key is ${wallet.publicKey}`);
     if (!props.isMyTweet) {
       return null;
     }
     return (
       <div>
-        <button>
+        <button onClick={handleEdit}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4 m-auto"
@@ -33,7 +62,7 @@ const TweetCard = (props) => {
             <path d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
           </svg>
         </button>
-        <button>
+        <button onClick={onDelete}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4 m-auto"
@@ -49,7 +78,15 @@ const TweetCard = (props) => {
 
   return (
     <div>
-      <div>{editing && <TweetFormUpdate />}</div>
+      <div>
+        {editing && showFormUpdate && (
+          <TweetFormUpdate
+            tweet={props.tweet}
+            hideComponent={hideComponent}
+            initialize={props.initialize}
+          />
+        )}
+      </div>
 
       <div className="px-8 py-4">
         <div className="flex justify-between">
