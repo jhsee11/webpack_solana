@@ -1,31 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendTweet } from '../api';
-import { useWallet, useAnchorWallet } from '@solana/wallet-adapter-react';
-import { Program, Provider, web3 } from '@project-serum/anchor';
-import { Connection, PublicKey } from '@solana/web3.js';
-import idl from '..//solana_twitter.json';
+import { getProgram } from '../composables';
 
 const TweetForm = (props) => {
-  const wallet = useAnchorWallet();
-
-  function getProgram() {
-    /* create the provider and return it to the caller */
-    /* network set to local network for now */
-
-    const network = 'http://127.0.0.1:8899';
-    const opts = {
-      preflightCommitment: 'processed',
-    };
-    const connection = new Connection(network, opts.preflightCommitment);
-    const provider = new Provider(connection, wallet, opts.preflightCommitment);
-    const programID = new PublicKey(idl.metadata.address);
-    const program = new Program(idl, programID, provider);
-    return program;
-  }
-
+  const { program, wallet, connected } = getProgram();
   const [forcedTopic, setforcedTopic] = useState('');
-  // Permissions.
-  const { connected } = useWallet();
   const [content, setContent] = useState();
   const [contentLength, setContentLength] = useState(0);
   const canTweet = () => content && characterLimit > 0;
@@ -45,12 +24,19 @@ const TweetForm = (props) => {
   const send = async () => {
     if (!canTweet) return;
     console.log(`Going to send tweet ${forcedTopic} ${content}`);
-    const tweet = await sendTweet(getProgram(), wallet, forcedTopic, content);
+    const tweet = await sendTweet(program, wallet, forcedTopic, content);
 
     setContent('');
     setforcedTopic('');
     props.initialize();
   };
+
+  const characterLimitColour =
+    280 - contentLength < 0
+      ? 'text-red-500'
+      : 280 - contentLength < 10
+      ? 'text-yellow-500'
+      : 'text-gray-500';
 
   useEffect(() => {
     if (textareaRef && textareaRef.current) {
@@ -59,13 +45,6 @@ const TweetForm = (props) => {
       textareaRef.current.style.height = scrollHeight + 'px';
     }
   }, [content]);
-
-  const characterLimitColour =
-    280 - contentLength < 0
-      ? 'text-red-500'
-      : 280 - contentLength < 10
-      ? 'text-yellow-500'
-      : 'text-gray-500';
 
   return (
     <div>

@@ -15,7 +15,7 @@ const Navbar = () => {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
 
-  const onClick = useCallback(async () => {
+  const sendFunctionTest = useCallback(async () => {
     if (!publicKey) throw new WalletNotConnectedError();
 
     const transaction = new Transaction().add(
@@ -25,10 +25,6 @@ const Navbar = () => {
         lamports: 1,
       })
     );
-
-    console.log(publicKey);
-    console.log(Keypair.generate().publicKey);
-    console.log(connection);
 
     const signature = await sendTransaction(transaction, connection);
 
@@ -118,7 +114,7 @@ const Navbar = () => {
       </div>
       <button
         className="fixed bottom-8 right-8 md:static w-48 md:w-full"
-        onClick={onClick}
+        onClick={sendFunctionTest}
         disabled={!publicKey}
       >
         Send 1 lamport to a random address!

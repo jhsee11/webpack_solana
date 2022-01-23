@@ -1,46 +1,22 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
-import { Program, Provider } from '@project-serum/anchor';
-import { Connection, PublicKey } from '@solana/web3.js';
 import { Link } from 'react-router-dom';
-import idl from '..//solana_twitter.json';
-import dayjs from 'dayjs';
 import { updateTweet } from '../api';
+import { getProgram } from '../composables';
 
 const TweetFormUpdate = (props) => {
-  const wallet = useAnchorWallet();
-  const { connected } = useWallet();
+  const { program, wallet, connected } = getProgram();
   const [content, setContent] = useState('');
   const [contentLength, setContentLength] = useState(0);
   const [topic, setTopic] = useState('');
   const textareaRef = useRef();
   const canTweet = () => content && characterLimit > 0;
+  const to_be_updated_tweet = props.tweet;
+
   const useCountCharacterLimit = (contentLength, limit) => {
     return limit - contentLength;
   };
 
   const characterLimit = useCountCharacterLimit(contentLength, 280);
-  const update_tweet = props.tweet;
-
-  function getProgram() {
-    const network = 'http://127.0.0.1:8899';
-    const opts = {
-      preflightCommitment: 'processed',
-    };
-    const connection = new Connection(network, opts.preflightCommitment);
-    const provider = new Provider(connection, wallet, opts.preflightCommitment);
-    const programID = new PublicKey(idl.metadata.address);
-    const program = new Program(idl, programID, provider);
-    return program;
-  }
-
-  useEffect(() => {
-    if (textareaRef && textareaRef.current) {
-      textareaRef.current.style.height = '0px';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = scrollHeight + 'px';
-    }
-  }, [content]);
 
   const characterLimitColour =
     280 - contentLength < 0
@@ -51,7 +27,7 @@ const TweetFormUpdate = (props) => {
 
   const update = async (tweet) => {
     if (!canTweet) return;
-    await updateTweet(getProgram(), wallet, tweet, topic, content);
+    await updateTweet(program, wallet, tweet, topic, content);
     props.hideComponent();
     props.initialize();
   };
@@ -60,6 +36,14 @@ const TweetFormUpdate = (props) => {
     setContent(content);
     setContentLength(content_length);
   };
+
+  useEffect(() => {
+    if (textareaRef && textareaRef.current) {
+      textareaRef.current.style.height = '0px';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = scrollHeight + 'px';
+    }
+  }, [content]);
 
   return (
     <div>
@@ -131,7 +115,7 @@ const TweetFormUpdate = (props) => {
                             ? 'bg-pink-500'
                             : 'bg-pink-300 cursor-not-allowed'
                         } disabled=${!canTweet}`}
-              onClick={() => update(update_tweet)}
+              onClick={() => update(to_be_updated_tweet)}
             >
               Update
             </button>

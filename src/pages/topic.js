@@ -19,7 +19,7 @@ const Topic = () => {
         </template>
       </TweetSearch>
       <div>
-        <TweetList></TweetList>
+        <TweetList loading={true}></TweetList>
         <div className="p-8 text-gray-500 text-center">
           No tweets were found in this topic...
         </div>

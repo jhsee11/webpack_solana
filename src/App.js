@@ -32,12 +32,6 @@ import { clusterApiUrl } from '@solana/web3.js';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 function App() {
-  const [value, setValue] = useState(null);
-
-  const test = () => {
-    console.log('gogogo 123');
-  };
-
   return (
     <div className="w-full max-w-3xl lg:max-w-4xl mx-auto">
       <Router>

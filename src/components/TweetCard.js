@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import TweetFormUpdate from './TweetFormUpdate';
 import { Link } from 'react-router-dom';
-import { useAnchorWallet } from '@solana/wallet-adapter-react';
-import { Program, Provider } from '@project-serum/anchor';
-import { Connection, PublicKey } from '@solana/web3.js';
-import idl from '..//solana_twitter.json';
 import { deleteTweet } from '../api';
+import { getProgram } from '../composables';
 
 const TweetCard = (props) => {
-  const wallet = useAnchorWallet();
+  const { program, wallet, connected } = getProgram();
   const [showFormUpdate, setShowFormUpdate] = useState(true);
+  const gotTopic = props.tweet.topic;
 
   const hideComponent = () => {
     setShowFormUpdate(false);
@@ -19,7 +17,6 @@ const TweetCard = (props) => {
     wallet && wallet.publicKey.toBase58() === props.tweet.author.toBase58()
   );
   const [editing, setEditing] = useState(false);
-  const gotTopic = props.tweet.topic;
 
   const handleEdit = () => {
     setEditing(true);
@@ -27,21 +24,9 @@ const TweetCard = (props) => {
   };
 
   const onDelete = async () => {
-    await deleteTweet(getProgram(), wallet, props.tweet);
+    await deleteTweet(program, wallet, props.tweet);
     props.initialize();
   };
-
-  function getProgram() {
-    const network = 'http://127.0.0.1:8899';
-    const opts = {
-      preflightCommitment: 'processed',
-    };
-    const connection = new Connection(network, opts.preflightCommitment);
-    const provider = new Provider(connection, wallet, opts.preflightCommitment);
-    const programID = new PublicKey(idl.metadata.address);
-    const program = new Program(idl, programID, provider);
-    return program;
-  }
 
   const EditButton = (props) => {
     console.log(`wallet value is ${wallet.value}`);

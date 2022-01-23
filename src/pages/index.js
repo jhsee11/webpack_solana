@@ -1,32 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import TweetForm from '../components/TweetForm';
 import TweetList from '../components/TweetList';
-import { useAnchorWallet } from '@solana/wallet-adapter-react';
-import { Connection, PublicKey } from '@solana/web3.js';
-import idl from '..//solana_twitter.json';
-import { Program, Provider, web3 } from '@project-serum/anchor';
-import * as anchor from '@project-serum/anchor';
-import * as bs58 from 'bs58';
+import { web3 } from '@project-serum/anchor';
 import { fetchTweets } from '../api';
+import { getProgram } from '../composables';
 
 const Home = () => {
+  const { program, wallet, connected } = getProgram();
   const [loading, setLoading] = useState(true);
   const [tweets, setTweets] = useState([]);
-
-  const wallet = useAnchorWallet();
-  const programID = new PublicKey(idl.metadata.address);
-  const opts = {
-    preflightCommitment: 'processed',
-  };
-
-  async function getProvider() {
-    /* create the provider and return it to the caller */
-    /* network set to local network for now */
-    const network = 'http://127.0.0.1:8899';
-    const connection = new Connection(network, opts.preflightCommitment);
-    const provider = new Provider(connection, wallet, opts.preflightCommitment);
-    return provider;
-  }
 
   useEffect(() => {
     let ignore = false;
@@ -38,13 +20,9 @@ const Home = () => {
   }, []);
 
   async function initialize() {
-    const provider = await getProvider();
-    /* create the program interface combining the idl, program ID, and provider */
-    const program = new Program(idl, programID, provider);
     try {
       /* interact with the program via rpc */
-      const tweet = anchor.web3.Keypair.generate();
-
+      const tweet = web3.Keypair.generate();
       fetchTweets(program)
         .then((fetchedTweets) => setTweets(fetchedTweets))
         .finally(() => setLoading(false));
